@@ -23,6 +23,8 @@ namespace display_device {
     if (!m_audio_context_api) {
       m_audio_context_api = std::make_shared<NoopAudioContext>();
     }
+
+    // TODO: load the persistence
   }
 
   EnumeratedDeviceList

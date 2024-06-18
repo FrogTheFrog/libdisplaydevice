@@ -34,9 +34,20 @@ namespace display_device {
     [[nodiscard]] std::string
     getDisplayName(const std::string &device_id) const override;
 
+    /** For details @see SettingsManagerInterface::applySettings */
+    [[nodiscard]] ApplyResult
+    applySettings(const SingleDisplayConfiguration &config) override;
+
+    /** For details @see SettingsManagerInterface::revertSettings */
+    [[nodiscard]] bool
+    revertSettings() override;
+
   protected:
     std::shared_ptr<WinDisplayDeviceInterface> m_dd_api;
     std::shared_ptr<SettingsPersistenceInterface> m_settings_persistence_api;
     std::shared_ptr<AudioContextInterface> m_audio_context_api;
+
+  public: // TODO: make private
+    std::optional<SingleDisplayConfigState> m_state_data;
   };
 }  // namespace display_device

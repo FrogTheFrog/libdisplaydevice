@@ -74,7 +74,7 @@ namespace display_device {
       EnsureOnlyDisplay /**< Deactivate other displays and turn on the specified one only. */
     };
 
-    std::string m_device_id {}; /**< Device id manually provided by the user via config. */
+    std::string m_device_id {}; /**< Device to perform configuration for (can be empty if primary device should be used). */
     DevicePreparation m_device_prep {}; /**< Instruction on how to prepare device. */
     std::optional<Resolution> m_resolution {}; /**< Resolution to configure. */
     std::optional<float> m_refresh_rate {}; /**< Refresh rate to configure. */

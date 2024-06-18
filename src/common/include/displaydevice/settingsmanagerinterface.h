@@ -13,7 +13,9 @@ namespace display_device {
      * @brief Outcome values when trying to apply settings.
      */
     enum class ApplyResult {
-      Ok
+      Ok,
+      ApiTemporarilyUnavailable,
+      LogicError /**< A generic error that could due unknown reasons. */
     };
 
     /**
@@ -63,8 +65,8 @@ namespace display_device {
      * const auto result = iface->applySettings(config);
      * ```
      */
-    //[[nodiscard]] virtual ApplyResult
-    // applySettings(const SingleDisplayConfiguration &config) = 0;
+    [[nodiscard]] virtual ApplyResult
+    applySettings(const SingleDisplayConfiguration &config) = 0;
 
     /**
      * @brief Revert the applied configuration and restore the previous settings.
@@ -76,8 +78,8 @@ namespace display_device {
      * const auto result = iface->revertSettings();
      * ```
      */
-    //[[nodiscard]] virtual bool
-    // revertSettings() = 0;
+    [[nodiscard]] virtual bool
+    revertSettings() = 0;
 
     /**
      * @brief Reset the persistence in case the settings cannot be reverted.

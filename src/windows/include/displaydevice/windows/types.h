@@ -100,4 +100,20 @@ namespace display_device {
    * @brief Ordered map of [DEVICE_ID -> std::optional<HdrState>].
    */
   using HdrStateMap = std::map<std::string, std::optional<HdrState>>;
+
+  /**
+   * @brief Arbitrary data for making and undoing changes.
+   */
+  struct SingleDisplayConfigState {
+    /**
+     * @brief This data represents the original system state and is used
+     *        as a base when trying to re-apply settings without reverting settings.
+     */
+    struct Initial {
+      ActiveTopology m_topology {};
+      std::string m_one_of_primary_devices {};
+    };
+
+    Initial m_initial;
+  };
 }  // namespace display_device
