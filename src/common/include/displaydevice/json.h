@@ -1,5 +1,8 @@
 #pragma once
 
+// system includes
+#include <set>
+
 // local includes
 #include "types.h"
 
@@ -20,4 +23,7 @@
 namespace display_device {
   DD_JSON_DECLARE_CONVERTER(EnumeratedDeviceList)
   DD_JSON_DECLARE_CONVERTER(SingleDisplayConfiguration)
+  DD_JSON_DECLARE_CONVERTER(std::set<std::string>)
+  DD_JSON_DECLARE_CONVERTER(std::string)
+  DD_JSON_DECLARE_CONVERTER(bool)
 }  // namespace display_device

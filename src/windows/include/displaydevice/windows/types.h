@@ -5,6 +5,7 @@
 
 // system includes
 #include <map>
+#include <set>
 
 // local includes
 #include "displaydevice/types.h"
@@ -106,14 +107,31 @@ namespace display_device {
    */
   struct SingleDisplayConfigState {
     /**
-     * @brief This data represents the original system state and is used
+     * @brief Data that represents the original system state and is used
      *        as a base when trying to re-apply settings without reverting settings.
      */
     struct Initial {
       ActiveTopology m_topology {};
-      std::string m_one_of_primary_devices {};
+      std::set<std::string> m_primary_devices {};
     };
 
+    /**
+     * @brief Data for tracking the modified changes.
+     */
+    struct Modified {
+      ActiveTopology m_topology {};
+      DeviceDisplayModeMap m_original_modes {};
+      HdrStateMap m_original_hdr_states {};
+      std::string m_original_primary_device {};
+    };
+
+    // TODO
+    [[nodiscard]] bool
+    hasModifications() const {
+      return !m_modified.m_original_modes.empty() || !m_modified.m_original_hdr_states.empty() || !m_modified.m_original_primary_device.empty();
+    }
+
     Initial m_initial;
+    Modified m_modified;
   };
 }  // namespace display_device

@@ -15,7 +15,7 @@ namespace display_device {
     enum class ApplyResult {
       Ok,
       ApiTemporarilyUnavailable,
-      LogicError /**< A generic error that could due unknown reasons. */
+      DevicePrepFailed
     };
 
     /**

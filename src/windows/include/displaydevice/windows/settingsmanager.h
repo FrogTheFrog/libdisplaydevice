@@ -43,11 +43,17 @@ namespace display_device {
     revertSettings() override;
 
   protected:
+    [[nodiscard]] bool
+    prepareTopology(const display_device::SingleDisplayConfiguration &config, const ActiveTopology &current_topology, SingleDisplayConfigState &new_state, bool &release_context);
+
+    [[nodiscard]] bool
+    revertModifiedSettings();
+
     std::shared_ptr<WinDisplayDeviceInterface> m_dd_api;
     std::shared_ptr<SettingsPersistenceInterface> m_settings_persistence_api;
     std::shared_ptr<AudioContextInterface> m_audio_context_api;
 
-  public: // TODO: make private
+  public:  // TODO: make private
     std::optional<SingleDisplayConfigState> m_state_data;
   };
 }  // namespace display_device
