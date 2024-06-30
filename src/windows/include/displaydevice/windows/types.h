@@ -125,13 +125,7 @@ namespace display_device {
       std::string m_original_primary_device {};
     };
 
-    // TODO
-    [[nodiscard]] bool
-    hasModifications() const {
-      return !m_modified.m_original_modes.empty() || !m_modified.m_original_hdr_states.empty() || !m_modified.m_original_primary_device.empty();
-    }
-
     Initial m_initial;
-    Modified m_modified;
+    std::optional<Modified> m_modified;
   };
 }  // namespace display_device

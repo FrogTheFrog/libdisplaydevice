@@ -53,4 +53,13 @@ namespace display_device {
 
   bool
   operator==(const DisplayMode &lhs, const DisplayMode &rhs);
+
+  bool
+  operator==(const SingleDisplayConfigState::Initial &lhs, const SingleDisplayConfigState::Initial &rhs);
+
+  bool
+  operator==(const SingleDisplayConfigState::Modified &lhs, const SingleDisplayConfigState::Modified &rhs);
+
+  bool
+  operator==(const SingleDisplayConfigState &lhs, const SingleDisplayConfigState &rhs);
 }  // namespace display_device

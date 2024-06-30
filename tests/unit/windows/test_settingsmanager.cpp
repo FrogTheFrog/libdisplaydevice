@@ -48,10 +48,10 @@ TEST_F_S_MOCKED(NullptrDisplayDeviceApuProvided) {
 TEST_F_S_MOCKED(NoopAudioAndSettingsContext) {
   class NakedSettingsManager: public display_device::SettingsManager {
   public:
-    using display_device::SettingsManager::SettingsManager;
+    using SettingsManager::SettingsManager;
 
-    using display_device::SettingsManager::m_audio_context_api;
-    using display_device::SettingsManager::m_settings_persistence_api;
+    using SettingsManager::m_audio_context_api;
+    using SettingsManager::m_settings_persistence_api;
   };
 
   const NakedSettingsManager settings_manager { m_dd_api, nullptr, nullptr };
