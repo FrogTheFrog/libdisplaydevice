@@ -4,6 +4,7 @@
 // local includes
 #include "displaydevice/noopaudiocontext.h"
 #include "displaydevice/noopsettingspersistence.h"
+#include "displaydevice/windows/json.h"
 
 namespace display_device {
   SettingsManager::SettingsManager(
@@ -24,7 +25,19 @@ namespace display_device {
       m_audio_context_api = std::make_shared<NoopAudioContext>();
     }
 
-    // TODO: load the persistence
+    const auto persistent_settings { m_settings_persistence_api->load() };
+    if (!persistent_settings) {
+      throw std::runtime_error { "Failed to load persistent settings!" };
+    }
+
+    if (!persistent_settings->empty()) {
+      m_state_data = SingleDisplayConfigState {};
+
+      std::string error_message;
+      if (!fromJson({ std::begin(*persistent_settings), std::end(*persistent_settings) }, *m_state_data, &error_message)) {
+        throw std::runtime_error { "Failed to parse persistent settings! Error:\n" + error_message };
+      }
+    }
   }
 
   EnumeratedDeviceList
@@ -35,5 +48,15 @@ namespace display_device {
   std::string
   SettingsManager::getDisplayName(const std::string &device_id) const {
     return m_dd_api->getDisplayName(device_id);
+  }
+
+  [[nodiscard]] bool
+  SettingsManager::persistState(const std::optional<SingleDisplayConfigState> &state) {
+    if (!state) {
+      return m_settings_persistence_api->clear();
+    }
+
+    const auto json_string { toJson(*state) };
+    return m_settings_persistence_api->store({ std::begin(json_string), std::end(json_string) });
   }
 }  // namespace display_device
