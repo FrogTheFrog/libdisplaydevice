@@ -126,8 +126,10 @@ namespace display_device {
 
     DdGuardFn hdr_guard_fn { noopFn };
     boost::scope::scope_exit<DdGuardFn &> hdr_guard { hdr_guard_fn };
+    DD_LOG(info) << "LOL: m_original_hdr_states " << toJson(cached_state->m_modified.m_original_hdr_states);
     if (!cached_state->m_modified.m_original_hdr_states.empty()) {
       const auto current_states { m_dd_api->getCurrentHdrStates(win_utils::flattenTopology(cached_state->m_modified.m_topology)) };
+      DD_LOG(info) << "LOL: current_states " << toJson(current_states);
       if (current_states != cached_state->m_modified.m_original_hdr_states) {
         system_settings_touched = true;
 
@@ -139,6 +141,9 @@ namespace display_device {
         }
 
         hdr_guard_fn = win_utils::hdrStateGuardFn(*m_dd_api, current_states);
+      }
+      else {
+        DD_LOG(info) << "LOL: states are the same?!";
       }
     }
 
