@@ -402,7 +402,7 @@ namespace display_device {
     // When we want to enable/disable displays, we need to get all paths as they will not be active.
     // This will require some additional filtering of duplicate and otherwise useless paths.
     UINT32 flags = type == QueryType::Active ? QDC_ONLY_ACTIVE_PATHS : QDC_ALL_PATHS;
-    flags |= QDC_VIRTUAL_MODE_AWARE;  // supported from W10 onwards
+    flags |= QDC_VIRTUAL_MODE_AWARE | QDC_VIRTUAL_REFRESH_RATE_AWARE;  // supported from W10 onwards
 
     do {
       UINT32 path_count {0};

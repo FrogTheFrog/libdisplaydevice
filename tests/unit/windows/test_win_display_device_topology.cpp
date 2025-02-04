@@ -276,7 +276,7 @@ TEST_F_S_MOCKED(SetCurrentTopology) {
   display_device::win_utils::setDesktopIndex(expected_path, std::nullopt);
   display_device::win_utils::setActive(expected_path);
 
-  UINT32 expected_flags {SDC_APPLY | SDC_TOPOLOGY_SUPPLIED | SDC_ALLOW_PATH_ORDER_CHANGES | SDC_VIRTUAL_MODE_AWARE};
+  UINT32 expected_flags {SDC_APPLY | SDC_TOPOLOGY_SUPPLIED | SDC_ALLOW_PATH_ORDER_CHANGES | SDC_VIRTUAL_MODE_AWARE | SDC_VIRTUAL_REFRESH_RATE_AWARE};
   EXPECT_CALL(*m_layer, setDisplayConfig(std::vector<DISPLAYCONFIG_PATH_INFO> {expected_path}, std::vector<DISPLAYCONFIG_MODE_INFO> {}, expected_flags))
     .Times(1)
     .WillOnce(Return(ERROR_SUCCESS));
@@ -358,7 +358,7 @@ TEST_F_S_MOCKED(SetCurrentTopology, WindowsDoesNotKnowAboutTheTopology, FailedTo
   setupExpectCallFor3ActivePathsAndModes(display_device::QueryType::Active, sequence);
   setupExpectCallFor3ActivePathsAndModes(display_device::QueryType::All, sequence);
 
-  UINT32 expected_flags {SDC_APPLY | SDC_TOPOLOGY_SUPPLIED | SDC_ALLOW_PATH_ORDER_CHANGES | SDC_VIRTUAL_MODE_AWARE};
+  UINT32 expected_flags {SDC_APPLY | SDC_TOPOLOGY_SUPPLIED | SDC_ALLOW_PATH_ORDER_CHANGES | SDC_VIRTUAL_MODE_AWARE | SDC_VIRTUAL_REFRESH_RATE_AWARE};
   EXPECT_CALL(*m_layer, setDisplayConfig(getExpectedPathToBeSet(), std::vector<DISPLAYCONFIG_MODE_INFO> {}, expected_flags))
     .Times(1)
     .WillOnce(Return(ERROR_GEN_FAILURE));
@@ -367,7 +367,7 @@ TEST_F_S_MOCKED(SetCurrentTopology, WindowsDoesNotKnowAboutTheTopology, FailedTo
     .Times(1)
     .WillRepeatedly(Return("ErrorDesc"));
 
-  expected_flags = SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_ALLOW_CHANGES | SDC_VIRTUAL_MODE_AWARE | SDC_SAVE_TO_DATABASE;
+  expected_flags = SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_ALLOW_CHANGES | SDC_VIRTUAL_MODE_AWARE | SDC_VIRTUAL_REFRESH_RATE_AWARE | SDC_SAVE_TO_DATABASE;
   EXPECT_CALL(*m_layer, setDisplayConfig(getExpectedPathToBeSet(), std::vector<DISPLAYCONFIG_MODE_INFO> {}, expected_flags))
     .Times(1)
     .WillOnce(Return(ERROR_GEN_FAILURE));
@@ -384,7 +384,7 @@ TEST_F_S_MOCKED(SetCurrentTopology, FailedToSetTopology, NoRecovery) {
   setupExpectCallFor3ActivePathsAndModes(display_device::QueryType::Active, sequence);
   setupExpectCallFor3ActivePathsAndModes(display_device::QueryType::All, sequence);
 
-  UINT32 expected_flags {SDC_APPLY | SDC_TOPOLOGY_SUPPLIED | SDC_ALLOW_PATH_ORDER_CHANGES | SDC_VIRTUAL_MODE_AWARE};
+  UINT32 expected_flags {SDC_APPLY | SDC_TOPOLOGY_SUPPLIED | SDC_ALLOW_PATH_ORDER_CHANGES | SDC_VIRTUAL_MODE_AWARE | SDC_VIRTUAL_REFRESH_RATE_AWARE};
   EXPECT_CALL(*m_layer, setDisplayConfig(getExpectedPathToBeSet(), std::vector<DISPLAYCONFIG_MODE_INFO> {}, expected_flags))
     .Times(1)
     .WillOnce(Return(ERROR_INVALID_PARAMETER));
@@ -401,7 +401,7 @@ TEST_F_S_MOCKED(SetCurrentTopology, TopologyWasSetAccordingToWinApi, CouldNotGet
   setupExpectCallFor3ActivePathsAndModes(display_device::QueryType::Active, sequence);
   setupExpectCallFor3ActivePathsAndModes(display_device::QueryType::All, sequence);
 
-  UINT32 expected_flags {SDC_APPLY | SDC_TOPOLOGY_SUPPLIED | SDC_ALLOW_PATH_ORDER_CHANGES | SDC_VIRTUAL_MODE_AWARE};
+  UINT32 expected_flags {SDC_APPLY | SDC_TOPOLOGY_SUPPLIED | SDC_ALLOW_PATH_ORDER_CHANGES | SDC_VIRTUAL_MODE_AWARE | SDC_VIRTUAL_REFRESH_RATE_AWARE};
   EXPECT_CALL(*m_layer, setDisplayConfig(getExpectedPathToBeSet(), std::vector<DISPLAYCONFIG_MODE_INFO> {}, expected_flags))
     .Times(1)
     .WillOnce(Return(ERROR_SUCCESS));
@@ -412,7 +412,7 @@ TEST_F_S_MOCKED(SetCurrentTopology, TopologyWasSetAccordingToWinApi, CouldNotGet
     .WillOnce(Return(ut_consts::PAM_NULL));
 
   // Called when doing the undo
-  expected_flags = SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_SAVE_TO_DATABASE | SDC_VIRTUAL_MODE_AWARE;
+  expected_flags = SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_SAVE_TO_DATABASE | SDC_VIRTUAL_MODE_AWARE | SDC_VIRTUAL_REFRESH_RATE_AWARE;
   EXPECT_CALL(*m_layer, setDisplayConfig(ut_consts::PAM_3_ACTIVE->m_paths, ut_consts::PAM_3_ACTIVE->m_modes, expected_flags))
     .Times(1)
     .WillOnce(Return(ERROR_SUCCESS));
@@ -425,7 +425,7 @@ TEST_F_S_MOCKED(SetCurrentTopology, TopologyWasSetAccordingToWinApi, WinApiLied)
   setupExpectCallFor3ActivePathsAndModes(display_device::QueryType::Active, sequence);
   setupExpectCallFor3ActivePathsAndModes(display_device::QueryType::All, sequence);
 
-  UINT32 expected_flags {SDC_APPLY | SDC_TOPOLOGY_SUPPLIED | SDC_ALLOW_PATH_ORDER_CHANGES | SDC_VIRTUAL_MODE_AWARE};
+  UINT32 expected_flags {SDC_APPLY | SDC_TOPOLOGY_SUPPLIED | SDC_ALLOW_PATH_ORDER_CHANGES | SDC_VIRTUAL_MODE_AWARE | SDC_VIRTUAL_REFRESH_RATE_AWARE};
   EXPECT_CALL(*m_layer, setDisplayConfig(getExpectedPathToBeSet(), std::vector<DISPLAYCONFIG_MODE_INFO> {}, expected_flags))
     .Times(1)
     .WillOnce(Return(ERROR_SUCCESS));
@@ -434,7 +434,7 @@ TEST_F_S_MOCKED(SetCurrentTopology, TopologyWasSetAccordingToWinApi, WinApiLied)
   setupExpectCallFor3ActivePathsAndModes(display_device::QueryType::Active, sequence);
 
   // Called when doing the undo
-  expected_flags = SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_SAVE_TO_DATABASE | SDC_VIRTUAL_MODE_AWARE;
+  expected_flags = SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_SAVE_TO_DATABASE | SDC_VIRTUAL_MODE_AWARE | SDC_VIRTUAL_REFRESH_RATE_AWARE;
   EXPECT_CALL(*m_layer, setDisplayConfig(ut_consts::PAM_3_ACTIVE->m_paths, ut_consts::PAM_3_ACTIVE->m_modes, expected_flags))
     .Times(1)
     .WillOnce(Return(ERROR_SUCCESS));
