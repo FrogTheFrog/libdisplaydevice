@@ -143,6 +143,19 @@ namespace {
   }
 }  // namespace
 
+TEST_F_S(MYTEST) {
+  const auto flattened_topology {display_device::win_utils::flattenTopology(m_win_dd.getCurrentTopology())};
+  const display_device::DeviceDisplayModeMap mixed_modes_1 {
+      {*flattened_topology.begin(), {2560, 1440, {120, 1}}}
+  };
+
+  const auto mode_guard {makeModeGuard(m_win_dd)};
+  ASSERT_TRUE(m_win_dd.setDisplayModes(mixed_modes_1));
+
+  int a = 5;
+  a++;
+}
+
 TEST_F_S(GetCurrentDisplayModes) {
   const auto flattened_topology {display_device::win_utils::flattenTopology(m_win_dd.getCurrentTopology())};
   const auto current_modes {m_win_dd.getCurrentDisplayModes(flattened_topology)};

@@ -23,6 +23,53 @@ namespace display_device {
       Strict
     };
 
+    const DISPLAYCONFIG_TARGET_MODE *getTargetMode(const std::optional<UINT32> &index, const std::vector<DISPLAYCONFIG_MODE_INFO> &modes) {
+      if (!index) {
+        return nullptr;
+      }
+
+      if (*index >= modes.size()) {
+        DD_LOG(error) << "Target index " << *index << " is out of range " << modes.size();
+        return nullptr;
+      }
+
+      const auto &mode {modes[*index]};
+      if (mode.infoType != DISPLAYCONFIG_MODE_INFO_TYPE_TARGET) {
+        DD_LOG(error) << "Mode at index " << *index << " is not target mode!";
+        return nullptr;
+      }
+
+      return &mode.targetMode;
+    }
+
+    DISPLAYCONFIG_TARGET_MODE *getTargetMode(const std::optional<UINT32> &index, std::vector<DISPLAYCONFIG_MODE_INFO> &modes) {
+      return const_cast<DISPLAYCONFIG_TARGET_MODE *>(getTargetMode(index, const_cast<const std::vector<DISPLAYCONFIG_MODE_INFO> &>(modes)));
+    }
+
+    std::optional<UINT32> getTargetIndex(const DISPLAYCONFIG_PATH_INFO &path, const std::vector<DISPLAYCONFIG_MODE_INFO> &modes) {
+      // The MS docs is not clear when to access the index union struct or not. It appears that union struct is available,
+      // whenever QDC_VIRTUAL_MODE_AWARE is specified when querying (always in our case).
+      //
+      // The docs state, however, that it is only available when DISPLAYCONFIG_PATH_SUPPORT_VIRTUAL_MODE flag is set, but
+      // that is just BS (maybe copy-pasta mistake), because some cases were found where the flag is not set and the union
+      // is still being used.
+
+      const UINT32 index {path.targetInfo.targetModeInfoIdx};
+      if (index == DISPLAYCONFIG_PATH_TARGET_MODE_IDX_INVALID) {
+        return std::nullopt;
+      }
+
+      if (index >= modes.size()) {
+        DD_LOG(error) << "Target index " << index << " is out of range " << modes.size();
+        return std::nullopt;
+      }
+
+      return index;
+    }
+
+    std::optional<DISPLAYCONFIG_PATH_INFO> WUT;
+    std::optional<DISPLAYCONFIG_SOURCE_MODE> WUT_SOURCE;
+
     /**
      * @see set_display_modes for a description as this was split off to reduce cognitive complexity.
      */
@@ -33,6 +80,7 @@ namespace display_device {
         return false;
       }
 
+      bool firsto{!WUT};
       bool changes_applied {false};
       for (const auto &[device_id, mode] : modes) {
         const auto path {win_utils::getActivePath(w_api, device_id, display_data->m_paths)};
@@ -47,34 +95,69 @@ namespace display_device {
           return false;
         }
 
+        const auto target_mode {getTargetMode(getTargetIndex(*path, display_data->m_modes), display_data->m_modes)};
+        if (!target_mode) {
+          DD_LOG(error) << "Active device does not have a target mode: " << device_id << "!";
+          return false;
+        }
+
         bool new_changes {false};
         const bool resolution_changed {source_mode->width != mode.m_resolution.m_width || source_mode->height != mode.m_resolution.m_height};
 
-        bool refresh_rate_changed;
-        if (strategy == Strategy::Relaxed) {
-          refresh_rate_changed = !win_utils::fuzzyCompareRefreshRates(Rational {path->targetInfo.refreshRate.Numerator, path->targetInfo.refreshRate.Denominator}, mode.m_refresh_rate);
-        } else {
-          // Since we are in strict mode, do not fuzzy compare it
-          refresh_rate_changed = path->targetInfo.refreshRate.Numerator != mode.m_refresh_rate.m_numerator ||
-                                 path->targetInfo.refreshRate.Denominator != mode.m_refresh_rate.m_denominator;
-        }
+        bool refresh_rate_changed{true};
+        // if (strategy == Strategy::Relaxed) {
+        //   refresh_rate_changed = !win_utils::fuzzyCompareRefreshRates(Rational {path->targetInfo.refreshRate.Numerator, path->targetInfo.refreshRate.Denominator}, mode.m_refresh_rate);
+        // } else {
+        //   // Since we are in strict mode, do not fuzzy compare it
+        //   refresh_rate_changed = path->targetInfo.refreshRate.Numerator != mode.m_refresh_rate.m_numerator ||
+        //                          path->targetInfo.refreshRate.Denominator != mode.m_refresh_rate.m_denominator;
+        // }
 
-        if (resolution_changed) {
-          source_mode->width = mode.m_resolution.m_width;
-          source_mode->height = mode.m_resolution.m_height;
-          new_changes = true;
-        }
 
-        if (refresh_rate_changed) {
-          path->targetInfo.refreshRate = {mode.m_refresh_rate.m_numerator, mode.m_refresh_rate.m_denominator};
+        if (!WUT) {
+          WUT_SOURCE = *source_mode;
+          WUT = *path;
+
+          if (resolution_changed) {
+            source_mode->width = mode.m_resolution.m_width;
+            source_mode->height = mode.m_resolution.m_height;
+            new_changes = true;
+          }
+
+          if (refresh_rate_changed) {
+            path->targetInfo.refreshRate = {mode.m_refresh_rate.m_numerator, mode.m_refresh_rate.m_denominator};
+            new_changes = true;
+          }
+
+          if (new_changes) {
+
+            // Clear the target index so that Windows has to select/modify the target to best match the requirements.
+            win_utils::setTargetIndex(*path, std::nullopt);
+          }
+        }
+        else {
+          if (resolution_changed) {
+            source_mode->width = mode.m_resolution.m_width;
+            source_mode->height = mode.m_resolution.m_height;
+            new_changes = true;
+          }
+
+          if (refresh_rate_changed) {
+            path->targetInfo.refreshRate = {mode.m_refresh_rate.m_numerator, mode.m_refresh_rate.m_denominator};
+            new_changes = true;
+          }
+
+          //path->flags |= DISPLAYCONFIG_PATH_BOOST_REFRESH_RATE;
+
+          *path = *WUT;
+          *source_mode = *WUT_SOURCE;
           new_changes = true;
         }
 
         if (new_changes) {
-          // Clear the target index so that Windows has to select/modify the target to best match the requirements.
-          win_utils::setTargetIndex(*path, std::nullopt);
           win_utils::setDesktopIndex(*path, std::nullopt);  // Part of struct containing target index and so it needs to be cleared
         }
+
 
         changes_applied = changes_applied || new_changes;
       }
@@ -85,7 +168,7 @@ namespace display_device {
       }
 
       UINT32 flags {SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_SAVE_TO_DATABASE | SDC_VIRTUAL_MODE_AWARE | SDC_VIRTUAL_REFRESH_RATE_AWARE};
-      if (strategy == Strategy::Relaxed) {
+      if (strategy == Strategy::Relaxed && firsto) {
         // It's probably best for Windows to select the "best" display settings for us. However, in case we
         // have custom resolution set in nvidia control panel for example, this flag will prevent successfully applying
         // settings to it.
@@ -219,13 +302,13 @@ namespace display_device {
       // which is not exposed to the via Windows settings app. To allow this
       // resolution to be selected, we actually need to omit SDC_ALLOW_CHANGES
       // flag.
-      DD_LOG(info) << "Failed to change display modes using Windows recommended modes, trying to set modes more strictly!";
-      if (doSetModes(*m_w_api, modes, Strategy::Strict)) {
-        current_modes = getCurrentDisplayModes(device_ids);
-        if (!current_modes.empty() && all_modes_match(current_modes)) {
-          return true;
-        }
-      }
+      // DD_LOG(info) << "Failed to change display modes using Windows recommended modes, trying to set modes more strictly!";
+      // if (doSetModes(*m_w_api, modes, Strategy::Strict)) {
+      //   current_modes = getCurrentDisplayModes(device_ids);
+      //   if (!current_modes.empty() && all_modes_match(current_modes)) {
+      //     return true;
+      //   }
+      // }
     }
 
     const UINT32 flags {SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_SAVE_TO_DATABASE | SDC_VIRTUAL_MODE_AWARE | SDC_VIRTUAL_REFRESH_RATE_AWARE};
