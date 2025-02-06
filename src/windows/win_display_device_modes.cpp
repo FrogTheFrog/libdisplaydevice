@@ -68,7 +68,8 @@ namespace display_device {
     }
 
     std::optional<DISPLAYCONFIG_PATH_INFO> WUT;
-    std::optional<DISPLAYCONFIG_SOURCE_MODE> WUT_SOURCE;
+    // std::optional<DISPLAYCONFIG_SOURCE_MODE> WUT_SOURCE;
+    std::optional<DISPLAYCONFIG_TARGET_MODE> WUT_TARGET;
 
     /**
      * @see set_display_modes for a description as this was split off to reduce cognitive complexity.
@@ -115,7 +116,8 @@ namespace display_device {
 
 
         if (!WUT) {
-          WUT_SOURCE = *source_mode;
+          WUT_TARGET = *target_mode;
+          // WUT_SOURCE = *source_mode;
           WUT = *path;
 
           if (resolution_changed) {
@@ -147,10 +149,11 @@ namespace display_device {
             new_changes = true;
           }
 
-          //path->flags |= DISPLAYCONFIG_PATH_BOOST_REFRESH_RATE;
+          path->flags |= DISPLAYCONFIG_PATH_BOOST_REFRESH_RATE;
 
-          *path = *WUT;
-          *source_mode = *WUT_SOURCE;
+          //*path = *WUT;
+          // *source_mode = *WUT_SOURCE;
+          *target_mode = *WUT_TARGET;
           new_changes = true;
         }
 
